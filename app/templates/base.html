@@ -11,7 +11,7 @@
     <header class="header">
         <nav class="nav">
             <div class="nav-brand">
-                <a href="{{ url_for('main.home') }}" class="logo">ReelWrapped</a>
+                <a href="{% if request.endpoint in ['auth.login', 'auth.register'] %}{{ url_for('main.landing') }}{% else %}{{ url_for('main.home') }}{% endif %}" class="logo">ReelWrapped</a>
             </div>
             <div class="nav-links">
                 {% if session.user_id %}

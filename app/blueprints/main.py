@@ -8,7 +8,7 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.before_request
 def require_login():
-    allowed_routes = ['auth.login', 'auth.register', 'main.landing']
+    allowed_routes = ['auth.login', 'auth.register', 'main.landing', 'main.about', 'main.support']
     if request.endpoint not in allowed_routes and 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
@@ -638,6 +638,14 @@ def get_trend_users(trend_type, trend_name):
         'username': u['username'],
         'profile_image_url': u['profile_image_url'] or 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIzMCIgZmlsbD0iI2NjYyIvPjwvc3ZnPg=='
     } for u in users])
+
+@main_bp.route('/about')
+def about():
+    return render_template('about.html')
+
+@main_bp.route('/support')
+def support():
+    return render_template('support.html')
 
 @main_bp.route('/api/trend_followers/<trend_type>/<path:trend_name>')
 def get_trend_followers(trend_type, trend_name):

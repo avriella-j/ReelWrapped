@@ -1,3 +1,4 @@
 - [x] Add server-side sort and filter to home page route
 - [x] Add server-side sort to mutuals page route
-- [ ] Test the functionality
+- [x] Add About and Support pages with proper navigation
+- [x] Test the functionality (server starts successfully)

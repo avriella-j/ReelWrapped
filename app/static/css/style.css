@@ -290,6 +290,30 @@ body {
     background: #e0e0e0;
 }
 
+/* Landing page button overrides */
+.landing-page .btn-primary {
+    background: #e1306c;
+    color: white;
+    border: none;
+}
+
+.landing-page .btn-primary:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(225, 48, 108, 0.3);
+}
+
+.landing-page .btn-secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.landing-page .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
 .btn-danger {
     background: #dc3545;
     color: var(--light-color);
@@ -1050,6 +1074,111 @@ body {
     color: #666;
 }
 
+/* About Page Styles */
+.about-page,
+.support-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #E1306C, #F77737, #FCAF45);
+    font-family: 'Inter', sans-serif;
+}
+
+.about-content,
+.support-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 6rem 2rem 4rem;
+    color: white;
+}
+
+.about-title,
+.support-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.about-section,
+.support-section {
+    margin-bottom: 3rem;
+}
+
+.about-section h2,
+.support-section h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.about-section p,
+.support-section p {
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.about-section ul,
+.about-section ol {
+    margin-left: 1.5rem;
+    line-height: 1.8;
+}
+
+.about-section li,
+.support-section li {
+    margin-bottom: 0.5rem;
+}
+
+.faq-item {
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.faq-item h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.faq-item p {
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.contact-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    margin: 1.5rem 0;
+}
+
+.contact-info p {
+    margin-bottom: 0.5rem;
+}
+
+.contact-info a {
+    color: #FFD700;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+.cta-section {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .nav {
@@ -1079,5 +1208,24 @@ body {
     .user-card {
         flex-direction: column;
         text-align: center;
+    }
+
+    .about-content,
+    .support-content {
+        padding: 5rem 1rem 3rem;
+    }
+
+    .about-title,
+    .support-title {
+        font-size: 2rem;
+    }
+
+    .cta-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 200px;
     }
 }

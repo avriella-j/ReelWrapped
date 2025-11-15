@@ -8,18 +8,53 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.before_request
 def require_login():
-    allowed_routes = ['auth.login', 'auth.register']
+    allowed_routes = ['auth.login', 'auth.register', 'main.landing']
     if request.endpoint not in allowed_routes and 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
 @main_bp.route('/')
+def landing():
+    # If user is logged in, redirect to home
+    if 'user_id' in session:
+        return redirect(url_for('main.home'))
+    return render_template('landing.html')
+
 @main_bp.route('/home')
 def home():
     db = get_db()
     cursor = db.cursor()
 
-    # Get global trends
-    cursor.execute('SELECT * FROM global_trends ORDER BY count DESC LIMIT 20')
+    # Get query parameters for sorting and filtering
+    sort_by = request.args.get('sort', 'popular')
+    filter_by = request.args.get('filter', 'all')
+
+    # Base query for global trends
+    base_query = 'SELECT * FROM global_trends'
+    where_clauses = []
+    params = []
+
+    # Apply filter
+    if filter_by != 'all':
+        where_clauses.append('trend_type = ?')
+        params.append(filter_by)
+
+    # Build the query
+    if where_clauses:
+        query = f"{base_query} WHERE {' AND '.join(where_clauses)}"
+    else:
+        query = base_query
+
+    # Apply sorting
+    if sort_by == 'recent':
+        query += ' ORDER BY last_updated DESC'
+    elif sort_by == 'alphabetical':
+        query += ' ORDER BY name ASC'
+    else:  # popular (default)
+        query += ' ORDER BY count DESC'
+
+    query += ' LIMIT 20'
+
+    cursor.execute(query, params)
     trends = cursor.fetchall()
 
     # Group by type
@@ -27,7 +62,7 @@ def home():
     music = [t for t in trends if t['trend_type'] == 'music']
     creators = [t for t in trends if t['trend_type'] == 'creator']
 
-    return render_template('home.html', hashtags=hashtags, music=music, creators=creators)
+    return render_template('home.html', hashtags=hashtags, music=music, creators=creators, sort_by=sort_by, filter_by=filter_by)
 
 @main_bp.route('/foryou')
 def foryou():

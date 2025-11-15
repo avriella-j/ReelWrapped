@@ -15,6 +15,9 @@ def mutuals():
     db = get_db()
     cursor = db.cursor()
 
+    # Get query parameter for sorting
+    sort_by = request.args.get('sort', 'match')
+
     # Get users with similar interests and follower/following counts
     cursor.execute('''
         SELECT u.id, u.username, u.profile_image_url,
@@ -82,10 +85,15 @@ def mutuals():
             'is_following': is_following
         })
 
-    # Sort by match percentage
-    user_matches.sort(key=lambda x: x['match_percent'], reverse=True)
+    # Sort based on the sort parameter
+    if sort_by == 'followers':
+        user_matches.sort(key=lambda x: x['user']['followers'], reverse=True)
+    elif sort_by == 'alphabetical':
+        user_matches.sort(key=lambda x: x['user']['username'].lower())
+    else:  # match (default)
+        user_matches.sort(key=lambda x: x['match_percent'], reverse=True)
 
-    return render_template('mutuals.html', user_matches=user_matches)
+    return render_template('mutuals.html', user_matches=user_matches, sort_by=sort_by)
 
 @mutuals_bp.route('/follow/<int:user_id>', methods=['POST'])
 def follow(user_id):

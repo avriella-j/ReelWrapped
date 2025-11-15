@@ -25,7 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sort functionality
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {
-        sortSelect.addEventListener('change', sortContent);
+        sortSelect.addEventListener('change', function() {
+            const sortValue = this.value;
+            // Update URL with sort parameter
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sortValue);
+            window.location.href = url.toString();
+        });
     }
 
     // Follow/Unfollow buttons
@@ -653,6 +659,26 @@ function closeTrendFollowersModal() {
     }
 }
 
+// Logout confirmation functions
+function confirmLogout(event) {
+    event.preventDefault();
+    const modal = document.getElementById('logout-modal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closeLogoutModal() {
+    const modal = document.getElementById('logout-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function proceedLogout() {
+    window.location.href = '/logout';
+}
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     const editModal = document.getElementById('edit-modal');
@@ -660,6 +686,7 @@ window.onclick = function(event) {
     const followingModal = document.getElementById('following-modal');
     const trendUsersModal = document.getElementById('trend-users-modal');
     const trendFollowersModal = document.getElementById('trend-followers-modal');
+    const logoutModal = document.getElementById('logout-modal');
 
     if (event.target === editModal) {
         editModal.style.display = 'none';
@@ -675,5 +702,8 @@ window.onclick = function(event) {
     }
     if (event.target === trendFollowersModal) {
         trendFollowersModal.style.display = 'none';
+    }
+    if (event.target === logoutModal) {
+        logoutModal.style.display = 'none';
     }
 }

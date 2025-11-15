@@ -193,7 +193,23 @@ def user_detail(user_id):
     cursor.execute('SELECT * FROM follows WHERE follower_id = ? AND following_id = ?', (current_user_id, user_id))
     is_following = cursor.fetchone() is not None
 
-    return render_template('user_detail.html', user=user, interests=interests, is_following=is_following)
+    # Get followers count
+    cursor.execute('SELECT COUNT(*) as followers FROM follows WHERE following_id = ?', (user_id,))
+    followers = cursor.fetchone()['followers']
+
+    # Get following count (users + hashtags + music)
+    cursor.execute('SELECT COUNT(*) as user_following FROM follows WHERE follower_id = ?', (user_id,))
+    user_following = cursor.fetchone()['user_following']
+
+    cursor.execute('SELECT COUNT(*) as hashtag_following FROM hashtag_follows WHERE user_id = ?', (user_id,))
+    hashtag_following = cursor.fetchone()['hashtag_following']
+
+    cursor.execute('SELECT COUNT(*) as music_following FROM music_follows WHERE user_id = ?', (user_id,))
+    music_following = cursor.fetchone()['music_following']
+
+    following = user_following + hashtag_following + music_following
+
+    return render_template('user_detail.html', user=user, interests=interests, is_following=is_following, followers=followers, following=following)
 
 @main_bp.route('/api/followers/<int:user_id>')
 def get_followers(user_id):

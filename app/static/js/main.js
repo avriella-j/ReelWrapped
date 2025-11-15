@@ -16,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', filterContent);
     }
 
+    // Filter functionality
+    const filterSelect = document.getElementById('filter-select');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', filterContent);
+    }
+
     // Sort functionality
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {
@@ -90,47 +96,97 @@ function showTab(tabName) {
 
 function filterContent() {
     const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+    const filterValue = document.getElementById('filter-select')?.value || 'all';
 
-    const cards = document.querySelectorAll('.user-card');
-    cards.forEach(card => {
-        const name = card.querySelector('h3')?.textContent.toLowerCase() || '';
+    // Handle trend cards on home page
+    const trendCards = document.querySelectorAll('.trend-card');
+    if (trendCards.length > 0) {
+        trendCards.forEach(card => {
+            const name = card.dataset.name?.toLowerCase() || '';
+            const type = card.dataset.type || '';
 
-        const matchesSearch = name.includes(searchTerm);
+            const matchesSearch = name.includes(searchTerm);
+            const matchesFilter = filterValue === 'all' || type === filterValue;
 
-        if (matchesSearch) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
+            if (matchesSearch && matchesFilter) {
+                card.closest('.trend-card-link').style.display = 'block';
+            } else {
+                card.closest('.trend-card-link').style.display = 'none';
+            }
+        });
+    }
+
+    // Handle user cards on mutuals page
+    const userCards = document.querySelectorAll('.user-card');
+    if (userCards.length > 0) {
+        userCards.forEach(card => {
+            const name = card.querySelector('h3')?.textContent.toLowerCase() || '';
+
+            const matchesSearch = name.includes(searchTerm);
+
+            if (matchesSearch) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 }
 
 function sortContent() {
-    const sortValue = document.getElementById('sort-select')?.value || 'match';
-    const container = document.getElementById('mutuals-container');
+    const sortValue = document.getElementById('sort-select')?.value || 'popular';
 
-    if (!container) return;
+    // Handle trend cards on home page
+    const trendContainers = document.querySelectorAll('.cards-container');
+    if (trendContainers.length > 0) {
+        trendContainers.forEach(container => {
+            const cards = Array.from(container.children);
 
-    const cards = Array.from(container.children);
+            cards.sort((a, b) => {
+                if (sortValue === 'alphabetical') {
+                    const nameA = a.querySelector('h3')?.textContent || '';
+                    const nameB = b.querySelector('h3')?.textContent || '';
+                    return nameA.localeCompare(nameB);
+                } else if (sortValue === 'recent') {
+                    const dateA = new Date(a.querySelector('.trend-card')?.dataset.lastUpdated || 0);
+                    const dateB = new Date(b.querySelector('.trend-card')?.dataset.lastUpdated || 0);
+                    return dateB - dateA;
+                } else {
+                    // Popular (default) - sort by count
+                    const countA = parseInt(a.querySelector('.trend-card')?.dataset.count || 0);
+                    const countB = parseInt(b.querySelector('.trend-card')?.dataset.count || 0);
+                    return countB - countA;
+                }
+            });
 
-    cards.sort((a, b) => {
-        if (sortValue === 'alphabetical') {
-            const nameA = a.querySelector('h3')?.textContent || '';
-            const nameB = b.querySelector('h3')?.textContent || '';
-            return nameA.localeCompare(nameB);
-        } else if (sortValue === 'followers') {
-            const followersA = parseInt(a.querySelector('.stat')?.textContent.match(/\d+/) || 0);
-            const followersB = parseInt(b.querySelector('.stat')?.textContent.match(/\d+/) || 0);
-            return followersB - followersA;
-        } else {
-            // Match (default) - sort by match percentage
-            const matchA = parseInt(a.querySelector('.match-score')?.textContent.match(/\d+/) || 0);
-            const matchB = parseInt(b.querySelector('.match-score')?.textContent.match(/\d+/) || 0);
-            return matchB - matchA;
-        }
-    });
+            cards.forEach(card => container.appendChild(card));
+        });
+    }
 
-    cards.forEach(card => container.appendChild(card));
+    // Handle user cards on mutuals page
+    const userContainer = document.getElementById('mutuals-container');
+    if (userContainer) {
+        const cards = Array.from(userContainer.children);
+
+        cards.sort((a, b) => {
+            if (sortValue === 'alphabetical') {
+                const nameA = a.querySelector('h3')?.textContent || '';
+                const nameB = b.querySelector('h3')?.textContent || '';
+                return nameA.localeCompare(nameB);
+            } else if (sortValue === 'followers') {
+                const followersA = parseInt(a.querySelector('.stat')?.textContent.match(/\d+/) || 0);
+                const followersB = parseInt(b.querySelector('.stat')?.textContent.match(/\d+/) || 0);
+                return followersB - followersA;
+            } else {
+                // Match (default) - sort by match percentage
+                const matchA = parseInt(a.querySelector('.match-score')?.textContent.match(/\d+/) || 0);
+                const matchB = parseInt(b.querySelector('.match-score')?.textContent.match(/\d+/) || 0);
+                return matchB - matchA;
+            }
+        });
+
+        cards.forEach(card => userContainer.appendChild(card));
+    }
 }
 
 async function handleFollow(button) {

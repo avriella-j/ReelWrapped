@@ -27,7 +27,7 @@
             <div class="cards-container" id="hashtags-container">
                 {% for hashtag in hashtags %}
                 <a href="/hashtag/{{ hashtag.name[1:] }}" class="trend-card-link">
-                    <div class="trend-card" data-type="hashtag" data-name="{{ hashtag.name }}">
+                    <div class="trend-card" data-type="hashtag" data-name="{{ hashtag.name }}" data-count="{{ hashtag.count }}" data-last-updated="{{ hashtag.last_updated }}">
                         <div class="card-icon">#</div>
                         <h3>{{ hashtag.name }}</h3>
                         <p>{{ hashtag.count }} posts</p>
@@ -42,7 +42,7 @@
             <div class="cards-container" id="music-container">
                 {% for music in music %}
                 <a href="/music/{{ music.name }}" class="trend-card-link">
-                    <div class="trend-card" data-type="music" data-name="{{ music.name }}">
+                    <div class="trend-card" data-type="music" data-name="{{ music.name }}" data-count="{{ music.count }}" data-last-updated="{{ music.last_updated }}">
                         <div class="card-icon">♪</div>
                         <h3>{{ music.name }}</h3>
                         <p>{{ music.count }} likes</p>
@@ -57,7 +57,7 @@
             <div class="cards-container" id="creators-container">
                 {% for creator in creators %}
                 <a href="/creator/{{ creator.name }}" class="trend-card-link">
-                    <div class="trend-card" data-type="creator" data-name="{{ creator.name }}">
+                    <div class="trend-card" data-type="creator" data-name="{{ creator.name }}" data-count="{{ creator.count }}" data-last-updated="{{ creator.last_updated }}">
                         <div class="card-icon">★</div>
                         <h3>{{ creator.name }}</h3>
                         <p>{{ creator.count }} followers</p>

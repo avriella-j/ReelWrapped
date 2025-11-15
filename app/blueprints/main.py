@@ -154,7 +154,10 @@ def profile():
     cursor.execute('SELECT COUNT(*) as music_following FROM music_follows WHERE user_id = ?', (user_id,))
     music_following = cursor.fetchone()['music_following']
 
-    following = user_following + hashtag_following + music_following
+    cursor.execute('SELECT COUNT(*) as creator_following FROM creator_follows WHERE user_id = ?', (user_id,))
+    creator_following = cursor.fetchone()['creator_following']
+
+    following = user_following + hashtag_following + music_following + creator_following
 
     return render_template('profile.html', user=user, interests=interests, followers=followers, following=following)
 
@@ -207,7 +210,10 @@ def user_detail(user_id):
     cursor.execute('SELECT COUNT(*) as music_following FROM music_follows WHERE user_id = ?', (user_id,))
     music_following = cursor.fetchone()['music_following']
 
-    following = user_following + hashtag_following + music_following
+    cursor.execute('SELECT COUNT(*) as creator_following FROM creator_follows WHERE user_id = ?', (user_id,))
+    creator_following = cursor.fetchone()['creator_following']
+
+    following = user_following + hashtag_following + music_following + creator_following
 
     return render_template('user_detail.html', user=user, interests=interests, is_following=is_following, followers=followers, following=following)
 
@@ -275,8 +281,18 @@ def get_following(user_id):
 
     music_following = cursor.fetchall()
 
+    # Get creator following
+    cursor.execute('''
+        SELECT NULL as id, creator_name as username, NULL as profile_image_url, 'creator' as type
+        FROM creator_follows
+        WHERE user_id = ?
+        ORDER BY creator_name
+    ''', (user_id,))
+
+    creator_following = cursor.fetchall()
+
     # Combine and return
-    following = user_following + hashtag_following + music_following
+    following = user_following + hashtag_following + music_following + creator_following
     return jsonify([{
         'id': f['id'],
         'username': f['username'],
@@ -398,7 +414,7 @@ def music_detail(song_name):
 
     # Get followers count (users following this song)
     cursor.execute('SELECT COUNT(*) as count FROM music_follows WHERE song_name = ?', (song_name,))
-    followers_count = cursor.fetchone()['followers_count']
+    followers_count = cursor.fetchone()['count']
 
     # Check if current user follows this song
     cursor.execute('SELECT 1 FROM music_follows WHERE user_id = ? AND song_name = ?', (user_id, song_name))
@@ -454,3 +470,179 @@ def unfollow_music(song_name):
     db.commit()
 
     return jsonify({'success': True, 'message': 'Unfollowed song successfully'})
+
+@main_bp.route('/creator/<creator_name>')
+def creator_detail(creator_name):
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('auth.login'))
+
+    db = get_db()
+    cursor = db.cursor()
+
+    # Prepend @ to creator_name for database query
+    full_creator_name = '@' + creator_name
+
+    # Get creator info from global_trends
+    cursor.execute('SELECT * FROM global_trends WHERE trend_type = ? AND name = ?', ('creator', full_creator_name))
+    creator = cursor.fetchone()
+
+    if not creator:
+        flash('Creator not found', 'error')
+        return redirect(url_for('main.home'))
+
+    # Update creator name to remove @
+    creator_name = creator_name
+
+    # Get rank
+    cursor.execute('SELECT COUNT(*) + 1 as rank FROM global_trends WHERE trend_type = ? AND count > ?', ('creator', creator['count']))
+    rank = cursor.fetchone()['rank']
+
+    # Get users who have this creator in their profile
+    cursor.execute('SELECT COUNT(*) as count FROM users WHERE profile_hashtags LIKE ?', (f'%{creator_name}%',))
+    profile_users_count = cursor.fetchone()['count']
+
+    # Get followers count (users following this creator)
+    cursor.execute('SELECT COUNT(*) as count FROM creator_follows WHERE creator_name = ?', (creator_name,))
+    followers_count = cursor.fetchone()['count']
+
+    # Check if current user follows this creator
+    cursor.execute('SELECT 1 FROM creator_follows WHERE user_id = ? AND creator_name = ?', (user_id, creator_name))
+    is_following = cursor.fetchone() is not None
+
+    # Get posts with this creator (placeholder data for now)
+    posts = []  # This would need a posts table with creator associations
+
+    # Get reels with this creator (placeholder data for now)
+    reels = []  # This would need a reels table with creator associations
+
+    return render_template('creator.html',
+                         creator_name=creator_name,
+                         rank=rank,
+                         profile_users_count=profile_users_count,
+                         followers_count=followers_count,
+                         is_following=is_following,
+                         posts=posts,
+                         reels=reels)
+
+@main_bp.route('/creator/follow/<creator_name>', methods=['POST'])
+def follow_creator(creator_name):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'message': 'Not logged in'})
+
+    db = get_db()
+    cursor = db.cursor()
+
+    try:
+        cursor.execute(
+            'INSERT INTO creator_follows (user_id, creator_name) VALUES (?, ?)',
+            (user_id, creator_name)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Followed creator successfully'})
+    except sqlite3.IntegrityError:
+        return jsonify({'success': False, 'message': 'Already following this creator'})
+
+@main_bp.route('/creator/unfollow/<creator_name>', methods=['POST'])
+def unfollow_creator(creator_name):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'message': 'Not logged in'})
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute(
+        'DELETE FROM creator_follows WHERE user_id = ? AND creator_name = ?',
+        (user_id, creator_name)
+    )
+    db.commit()
+
+    return jsonify({'success': True, 'message': 'Unfollowed creator successfully'})
+
+@main_bp.route('/api/trend_users/<trend_type>/<path:trend_name>')
+def get_trend_users(trend_type, trend_name):
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    db = get_db()
+    cursor = db.cursor()
+
+    if trend_type == 'hashtag':
+        # Users who have this hashtag in their profile_hashtags
+        cursor.execute('''
+            SELECT id, username, profile_image_url
+            FROM users
+            WHERE profile_hashtags LIKE ?
+            ORDER BY username
+        ''', (f'%{trend_name}%',))
+    elif trend_type == 'music':
+        # Users who have this song in their profile_hashtags (assuming music is stored there)
+        cursor.execute('''
+            SELECT id, username, profile_image_url
+            FROM users
+            WHERE profile_hashtags LIKE ?
+            ORDER BY username
+        ''', (f'%{trend_name}%',))
+    elif trend_type == 'creator':
+        # Users who have this creator in their profile_hashtags
+        cursor.execute('''
+            SELECT id, username, profile_image_url
+            FROM users
+            WHERE profile_hashtags LIKE ?
+            ORDER BY username
+        ''', (f'%{trend_name}%',))
+    else:
+        return jsonify({'error': 'Invalid trend type'}), 400
+
+    users = cursor.fetchall()
+    return jsonify([{
+        'id': u['id'],
+        'username': u['username'],
+        'profile_image_url': u['profile_image_url'] or 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIzMCIgZmlsbD0iI2NjYyIvPjwvc3ZnPg=='
+    } for u in users])
+
+@main_bp.route('/api/trend_followers/<trend_type>/<path:trend_name>')
+def get_trend_followers(trend_type, trend_name):
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    db = get_db()
+    cursor = db.cursor()
+
+    if trend_type == 'hashtag':
+        cursor.execute('''
+            SELECT u.id, u.username, u.profile_image_url
+            FROM hashtag_follows hf
+            JOIN users u ON hf.user_id = u.id
+            WHERE hf.hashtag_name = ?
+            ORDER BY u.username
+        ''', (trend_name,))
+    elif trend_type == 'music':
+        cursor.execute('''
+            SELECT u.id, u.username, u.profile_image_url
+            FROM music_follows mf
+            JOIN users u ON mf.user_id = u.id
+            WHERE mf.song_name = ?
+            ORDER BY u.username
+        ''', (trend_name,))
+    elif trend_type == 'creator':
+        cursor.execute('''
+            SELECT u.id, u.username, u.profile_image_url
+            FROM creator_follows cf
+            JOIN users u ON cf.user_id = u.id
+            WHERE cf.creator_name = ?
+            ORDER BY u.username
+        ''', (trend_name,))
+    else:
+        return jsonify({'error': 'Invalid trend type'}), 400
+
+    users = cursor.fetchall()
+    return jsonify([{
+        'id': u['id'],
+        'username': u['username'],
+        'profile_image_url': u['profile_image_url'] or 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIzMCIgZmlsbD0iI2NjYyIvPjwvc3ZnPg=='
+    } for u in users])

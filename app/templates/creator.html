@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}{{ song_name }} - ReelWrapped{% endblock %}
+{% block title %}{{ creator_name }} - ReelWrapped{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="profile-header">
         <div class="profile-avatar">
-            <div class="music-icon">
-                <span class="music-symbol">♪</span>
+            <div class="creator-icon">
+                <span class="creator-symbol">@</span>
             </div>
         </div>
         <div class="profile-info">
-            <h1>{{ song_name }}</h1>
+            <h1>@{{ creator_name }}</h1>
             <div class="profile-stats">
                 <span class="stat-rank">#{{ rank }} Trending</span>
-                <button class="stat-btn" onclick="showTrendUsersModal('music', '{{ song_name }}')"><strong>{{ profile_users_count }}</strong> users in profiles</button>
-                <button class="stat-btn" onclick="showTrendFollowersModal('music', '{{ song_name }}')"><strong>{{ followers_count }}</strong> followers</button>
+                <button class="stat-btn" onclick="showTrendUsersModal('creator', '{{ creator_name }}')"><strong>{{ profile_users_count }}</strong> users in profiles</button>
+                <button class="stat-btn" onclick="showTrendFollowersModal('creator', '{{ creator_name }}')"><strong>{{ followers_count }}</strong> followers</button>
             </div>
-            <button class="btn btn-primary follow-btn" id="follow-btn" data-song-name="{{ song_name }}" data-following="{{ is_following|lower }}">
+            <button class="btn btn-primary follow-btn" id="follow-btn" data-creator-name="{{ creator_name }}" data-following="{{ is_following|lower }}">
                 {% if is_following %}Unfollow{% else %}Follow{% endif %}
             </button>
-            <p class="music-bio">Discover content related to {{ song_name }}. Join the conversation and explore trending posts and reels.</p>
+            <p class="creator-bio">Discover content related to @{{ creator_name }}. Join the conversation and explore trending posts and reels.</p>
         </div>
     </div>
 
@@ -53,7 +53,7 @@
         </div>
         {% else %}
         <div class="no-content">
-            <p>No posts available for this song.</p>
+            <p>No posts available for this creator.</p>
         </div>
         {% endif %}
     </div>
@@ -85,7 +85,7 @@
         </div>
         {% else %}
         <div class="no-content">
-            <p>No reels available for this song.</p>
+            <p>No reels available for this creator.</p>
         </div>
         {% endif %}
     </div>

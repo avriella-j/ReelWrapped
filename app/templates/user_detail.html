@@ -41,7 +41,7 @@
             <h3>Top Hashtags</h3>
             <div class="interest-list">
                 {% for hashtag in interests.hashtags %}
-                <span class="interest-tag">#{{ hashtag }}</span>
+                <span class="interest-tag">#{{ hashtag.lstrip('#') }}</span>
                 {% endfor %}
             </div>
         </div>

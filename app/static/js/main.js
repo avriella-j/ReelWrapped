@@ -208,6 +208,11 @@ async function handleFollow(button) {
         // Music follow/unfollow
         action = isFollowing ? 'unfollow' : 'follow';
         url = `/music/${action}/${encodeURIComponent(songName)}`;
+    } else if (button.dataset.creatorName) {
+        // Creator follow/unfollow
+        const creatorName = button.dataset.creatorName;
+        action = isFollowing ? 'unfollow' : 'follow';
+        url = `/creator/${action}/${creatorName}`;
     } else {
         showAlert('Invalid follow action', 'error');
         return;
@@ -520,6 +525,16 @@ function createUserListItem(user) {
                 <p>Music</p>
             </div>
         `;
+    } else if (user.type === 'creator') {
+        item.innerHTML = `
+            <div class="creator-list-icon">
+                <span class="creator-symbol">★</span>
+            </div>
+            <div class="user-list-info">
+                <h4><a href="/creator/${user.username}" style="text-decoration: none; color: inherit;">${user.username}</a></h4>
+                <p>Creator</p>
+            </div>
+        `;
     } else {
         item.innerHTML = `
             <img src="${user.profile_image_url}" alt="${user.username}" class="user-list-avatar">
@@ -544,11 +559,107 @@ function getCurrentUserId() {
     return 'current';
 }
 
+// Trend Users Modal Functions
+function showTrendUsersModal(trendType, trendName) {
+    const modal = document.getElementById('trend-users-modal');
+    const list = document.getElementById('trend-users-list');
+
+    if (modal && list) {
+        // Clear previous content
+        list.innerHTML = '<div class="loading">Loading...</div>';
+
+        // Fetch trend users data
+        fetch(`/api/trend_users/${trendType}/${encodeURIComponent(trendName)}`)
+            .then(response => response.json())
+            .then(data => {
+                list.innerHTML = '';
+                if (data.length === 0) {
+                    list.innerHTML = '<p>No users found.</p>';
+                } else {
+                    data.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-list-item';
+                        userItem.innerHTML = `
+                            <img src="${user.profile_image_url}" alt="${user.username}" class="user-list-avatar">
+                            <div class="user-list-info">
+                                <h4><a href="/user/${user.id}" style="text-decoration: none; color: inherit;">${user.username}</a></h4>
+                                <p>Click to view profile</p>
+                            </div>
+                        `;
+                        list.appendChild(userItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading trend users:', error);
+                list.innerHTML = '<p>Error loading users.</p>';
+            });
+
+        modal.style.display = 'block';
+    }
+}
+
+function closeTrendUsersModal() {
+    const modal = document.getElementById('trend-users-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Trend Followers Modal Functions
+function showTrendFollowersModal(trendType, trendName) {
+    const modal = document.getElementById('trend-followers-modal');
+    const list = document.getElementById('trend-followers-list');
+
+    if (modal && list) {
+        // Clear previous content
+        list.innerHTML = '<div class="loading">Loading...</div>';
+
+        // Fetch trend followers data
+        fetch(`/api/trend_followers/${trendType}/${encodeURIComponent(trendName)}`)
+            .then(response => response.json())
+            .then(data => {
+                list.innerHTML = '';
+                if (data.length === 0) {
+                    list.innerHTML = '<p>No followers found.</p>';
+                } else {
+                    data.forEach(user => {
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-list-item';
+                        userItem.innerHTML = `
+                            <img src="${user.profile_image_url}" alt="${user.username}" class="user-list-avatar">
+                            <div class="user-list-info">
+                                <h4><a href="/user/${user.id}" style="text-decoration: none; color: inherit;">${user.username}</a></h4>
+                                <p>Click to view profile</p>
+                            </div>
+                        `;
+                        list.appendChild(userItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading trend followers:', error);
+                list.innerHTML = '<p>Error loading followers.</p>';
+            });
+
+        modal.style.display = 'block';
+    }
+}
+
+function closeTrendFollowersModal() {
+    const modal = document.getElementById('trend-followers-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     const editModal = document.getElementById('edit-modal');
     const followersModal = document.getElementById('followers-modal');
     const followingModal = document.getElementById('following-modal');
+    const trendUsersModal = document.getElementById('trend-users-modal');
+    const trendFollowersModal = document.getElementById('trend-followers-modal');
 
     if (event.target === editModal) {
         editModal.style.display = 'none';
@@ -558,5 +669,11 @@ window.onclick = function(event) {
     }
     if (event.target === followingModal) {
         followingModal.style.display = 'none';
+    }
+    if (event.target === trendUsersModal) {
+        trendUsersModal.style.display = 'none';
+    }
+    if (event.target === trendFollowersModal) {
+        trendFollowersModal.style.display = 'none';
     }
 }

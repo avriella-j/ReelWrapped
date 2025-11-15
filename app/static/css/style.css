@@ -345,7 +345,31 @@ body {
     font-weight: bold;
 }
 
+.creator-icon {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--accent-color);
+    box-shadow: var(--box-shadow);
+}
+
+.creator-symbol {
+    font-size: 4rem;
+    color: var(--light-color);
+    font-weight: bold;
+}
+
 .music-bio {
+    color: #666;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+.creator-bio {
     color: #666;
     margin-bottom: 1rem;
     font-style: italic;
@@ -725,6 +749,24 @@ body {
     background: #f0f0f0;
 }
 
+/* No data message styling */
+.no-data p {
+    color: var(--light-color);
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Page title styling */
+.page-title {
+    color: var(--light-color);
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
 /* Settings */
 .settings-section {
     background: var(--light-color);
@@ -844,6 +886,17 @@ body {
     border: 2px solid var(--secondary-color);
 }
 
+.creator-list-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--accent-color);
+}
+
 .hashtag-symbol {
     font-size: 1.5rem;
     color: var(--light-color);
@@ -851,6 +904,12 @@ body {
 }
 
 .music-symbol {
+    font-size: 1.5rem;
+    color: var(--light-color);
+    font-weight: bold;
+}
+
+.creator-symbol {
     font-size: 1.5rem;
     color: var(--light-color);
     font-weight: bold;

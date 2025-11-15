@@ -111,7 +111,8 @@ def process_zip_file(zip_path, user_id):
                 interests['comments_made_count'] = len(data['comments'])
 
             if 'hashtags_used' in data:
-                interests['hashtags'] = data['hashtags_used']
+                # Strip # prefixes from hashtags to store them consistently
+                interests['hashtags'] = [tag.lstrip('#') for tag in data['hashtags_used']]
 
             if 'music_liked' in data:
                 interests['music_liked'] = data['music_liked']
@@ -138,6 +139,15 @@ def process_zip_file(zip_path, user_id):
                 interests['reels_watched_count'],
                 interests['comments_made_count']
             ))
+
+            # Update user's profile hashtags to match activity log data
+            if interests['hashtags']:
+                # Convert hashtag list to comma-separated string for profile_hashtags field
+                profile_hashtags_str = ', '.join(interests['hashtags'])
+                cursor.execute(
+                    'UPDATE users SET profile_hashtags = ? WHERE id = ?',
+                    (profile_hashtags_str, user_id)
+                )
 
             # Update global trends
             update_global_trends(interests)
@@ -166,7 +176,7 @@ def update_global_trends(interests):
             ON CONFLICT(trend_type, name) DO UPDATE SET
             count = count + 1,
             last_updated = CURRENT_TIMESTAMP
-        ''', (hashtag,))
+        ''', ('#' + hashtag,))
 
     # Update music
     for music in interests['music_liked']:
